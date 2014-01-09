@@ -1,0 +1,8 @@
+packages
+*/packages
+pubspec.lock
+
+# Editor/IDE nonsense
+.idea
+*.swp
+*~

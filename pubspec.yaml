@@ -1,0 +1,10 @@
+name: keypress
+version: 0.1.0
+description: >
+  A port of Keypress.js
+
+author: Enrique Gavidia <enrique@tabrat.com>
+
+dev_dependencies:
+  unittest: any
+  browser: any

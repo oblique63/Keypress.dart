@@ -1,0 +1,572 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>KeyCombo class / keypress Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="keypress" data-type="KeyCombo">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../keypress.html">keypress</a> &rsaquo; <a href="../keypress/KeyCombo.html">KeyCombo</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../keypress.html">keypress</a></h2><ul class="icon">
+<li><a href="../keypress/ComboCallback.html"><div class="icon-interface"></div>ComboCallback</a></li>
+<li><div class="icon-class"></div><strong>KeyCombo</strong></li>
+<li><a href="../keypress/Keypress.html"><div class="icon-class"></div>Keypress</a></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>KeyCombo</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<p>Binds <a href="ComboCallback">callback functions</a> to a <a href="combo_string">string of keys</a> to represent a key shortcut/combo.
+<a class="crossref" href="../keypress/KeyCombo.html">KeyCombo</a>s do not start listening for key combos on their own, they must be registered with <a class="crossref" href="../keypress/Keypress.html">Keypress</a>.</p>
+<pre class="source">
+class KeyCombo {
+   /// A [String] of seperated key names that make up the combo
+   final String
+       combo_string;
+
+   /// A [String] indicating how the key names are separated (e.g. `' '`, `'+'`, etc)
+   final String
+       combo_delimiter;
+
+   /// Whether to prevent the default browser behavior for all keypresses that are part of the combo.
+   bool
+       prevent_default = false;
+
+   /// Normally the [onKeyDown] callback will be called as fast as your browser fires the keydown event,
+   /// but by setting this option to `true`, the [onKeyDown] callback will only be called the first time.
+   bool
+       prevent_repeat = false;
+
+   /// Whether to log the number of times the combo has been pressed
+   bool
+       is_counting = false;
+
+   /// Whether to require the user to press the keys in the order specified by the [combo_string].
+   bool
+       is_ordered = false;
+
+   /// Whether to require the user to press all the keys in the [combo_string] exactly, and in order
+   bool
+       is_sequence = false;
+
+   /// Whether to call the callback functions of other [KeyCombo]s that share a subset of this combo's keys
+   bool
+       is_exclusive = false;
+
+   /// This option will check that ONLY the combo's keys are being pressed when set to true.
+   /// When set to the default value of false, a combo can be activated even if extraneous keys are pressed.
+   bool
+       is_solitary = false;
+
+   ComboCallback
+       onKeyDown,
+       onKeyUp,
+       onRelease;
+
+   List&lt;String&gt;
+       _keys;
+   int
+       _count = 0;
+
+   static String
+       _metakey;
+
+
+   /// Creates a [KeyCombo] instance
+   KeyCombo(this.combo_string,
+           {this.onKeyDown, this.onKeyUp, this.onRelease,
+            this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+            this.is_counting, this.is_ordered, this.is_sequence, this.is_exclusive, this.is_solitary }) {
+
+       _keys = combo_string.toLowerCase().split(combo_delimiter);
+       _validateCombo();
+   }
+
+   /// Creates a [counting combo](is_counting)
+   KeyCombo.counting(this.combo_string,
+                     {this.onKeyDown, this.onKeyUp, this.onRelease,
+                      this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+                      this.is_exclusive, this.is_solitary}) {
+
+       _keys = combo_string.toLowerCase().split(combo_delimiter);
+       is_counting = true;
+       is_ordered = true;
+       _validateCombo();
+   }
+
+   /// Creates a [sequence combo](is_sequence)
+   KeyCombo.sequence(this.combo_string,
+                     {this.onKeyDown, this.onKeyUp, this.onRelease,
+                      this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+                      this.is_exclusive, this.is_solitary}) {
+
+       _keys = combo_string.toLowerCase().split(combo_delimiter);
+       is_sequence = true;
+       _validateCombo();
+   }
+
+   /// A [List] of the keys in the combo
+   List&lt;String&gt; get
+   keys =&gt; _keys;
+
+   /// The number of times the combo has been called (only if [is_counting] == `true`)
+   int get
+   count =&gt; _count;
+
+   String
+   toString() =&gt; combo_string.toLowerCase();
+
+   /// Can compare [KeyCombo]s with each other, or with [String]s containing combo keys.
+   /// E.g. `(new KeyCombo('shift s', ...)) == 'shift s' == true`
+   bool operator
+   == (other) {
+       if (other is KeyCombo) {
+           List same_keys = _keys.where((key) =&gt; (other as KeyCombo).keys.contains(key));
+
+           return same_keys.length == _keys.length &amp;&amp;
+                   other.is_ordered == is_ordered;
+       }
+
+       else if (other is String) {
+           return other.toLowerCase() == combo_string ||
+                   other.toLowerCase() == _keys.join(combo_delimiter);
+       }
+       else throw "Invalid KeyCombo comparison";
+   }
+
+   int get
+   hashCode {
+       String code_string = _keys.join('')
+                                  .codeUnits
+                                  .fold('', (result, int code) =&gt; '$result$code');
+
+       if (is_ordered) {
+           code_string = '1$code_string';
+       }
+
+       return int.parse(code_string);
+   }
+
+   void
+   _validateCombo() {
+       if (_keys.isEmpty)
+           throw "Cannot create a KeyCombo with no keys!";
+
+       else if (combo_delimiter == null)
+           throw "KeyCombo must have a combo delimiter";
+
+       else if (combo_delimiter.contains(r'\w+'))
+           throw 'Combo delimiter cannot contain alpha-numeric characters: "$combo_delimiter"';
+
+       else if (onKeyDown == null &amp;&amp; onKeyUp == null &amp;&amp; onRelease == null)
+           throw 'KeyCombo must have a callback function: "$combo_string"';
+
+       if (_metakey == null) {
+           _decideMetaKey();
+       }
+
+       for (int i = 0; i &lt; _keys.length; i++) {
+           String key = _keys[i];
+
+           if (key == 'meta') {
+               _keys[i] = _metakey;
+           }
+           else if (_alternate_key_names.containsKey(key)) {
+               _keys[i] = _alternate_key_names[key];
+           }
+           else if (!_valid_keys.contains(key)) {
+               throw "Invalid key: $key";
+           }
+           else if (key == 'cmd') {
+               print("Warning: use 'meta' instead of 'cmd' to ensure platform compatibiity");
+           }
+       }
+
+       List non_modifier_keys = _keys.where((key) =&gt; !_modifier_keys.contains(key));
+       if (non_modifier_keys.length &gt; 1) {
+           throw "'meta'/'ctrl'/'cmd' KeyCombos cannot have more than 1 non-modifier key";
+       }
+   }
+
+   static void
+   _decideMetaKey() {
+       if (window.navigator.platform.contains("Mac")) {
+           _metakey = 'cmd';
+       }
+       else {
+           _metakey = 'ctrl';
+       }
+   }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="">
+<button class="show-code">Code</button>
+new <strong>KeyCombo</strong>(String combo_string, {<a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyDown, <a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyUp, <a href="../keypress/ComboCallback.html">ComboCallback</a> onRelease, String combo_delimiter: ' ', bool prevent_default, bool prevent_repeat, bool is_counting, bool is_ordered, bool is_sequence, bool is_exclusive, bool is_solitary}) <a class="anchor-link" href="#"
+              title="Permalink to KeyCombo.KeyCombo">#</a></h4>
+<div class="doc">
+<p>Creates a <a class="crossref" href="../keypress/KeyCombo.html">KeyCombo</a> instance</p>
+<pre class="source">
+KeyCombo(this.combo_string,
+       {this.onKeyDown, this.onKeyUp, this.onRelease,
+        this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+        this.is_counting, this.is_ordered, this.is_sequence, this.is_exclusive, this.is_solitary }) {
+
+   _keys = combo_string.toLowerCase().split(combo_delimiter);
+   _validateCombo();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="counting">
+<button class="show-code">Code</button>
+new <strong>KeyCombo.counting</strong>(String combo_string, {<a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyDown, <a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyUp, <a href="../keypress/ComboCallback.html">ComboCallback</a> onRelease, String combo_delimiter: ' ', bool prevent_default, bool prevent_repeat, bool is_exclusive, bool is_solitary}) <a class="anchor-link" href="#counting"
+              title="Permalink to KeyCombo.KeyCombo.counting">#</a></h4>
+<div class="doc">
+<p>Creates a <a href="is_counting">counting combo</a></p>
+<pre class="source">
+KeyCombo.counting(this.combo_string,
+                 {this.onKeyDown, this.onKeyUp, this.onRelease,
+                  this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+                  this.is_exclusive, this.is_solitary}) {
+
+   _keys = combo_string.toLowerCase().split(combo_delimiter);
+   is_counting = true;
+   is_ordered = true;
+   _validateCombo();
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="sequence">
+<button class="show-code">Code</button>
+new <strong>KeyCombo.sequence</strong>(String combo_string, {<a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyDown, <a href="../keypress/ComboCallback.html">ComboCallback</a> onKeyUp, <a href="../keypress/ComboCallback.html">ComboCallback</a> onRelease, String combo_delimiter: ' ', bool prevent_default, bool prevent_repeat, bool is_exclusive, bool is_solitary}) <a class="anchor-link" href="#sequence"
+              title="Permalink to KeyCombo.KeyCombo.sequence">#</a></h4>
+<div class="doc">
+<p>Creates a <a href="is_sequence">sequence combo</a></p>
+<pre class="source">
+KeyCombo.sequence(this.combo_string,
+                 {this.onKeyDown, this.onKeyUp, this.onRelease,
+                  this.combo_delimiter: ' ', this.prevent_default, this.prevent_repeat,
+                  this.is_exclusive, this.is_solitary}) {
+
+   _keys = combo_string.toLowerCase().split(combo_delimiter);
+   is_sequence = true;
+   _validateCombo();
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="combo_delimiter">
+<button class="show-code">Code</button>
+final String         <strong>combo_delimiter</strong> <a class="anchor-link"
+            href="#combo_delimiter"
+            title="Permalink to KeyCombo.combo_delimiter">#</a>
+        </h4>
+        <div class="doc">
+<p>A <a class="crossref" href="../dart_core/String.html">String</a> indicating how the key names are separated (e.g. <code>' '</code>, <code>'+'</code>, etc)</p>
+<pre class="source">
+final String
+   combo_delimiter
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="combo_string">
+<button class="show-code">Code</button>
+final String         <strong>combo_string</strong> <a class="anchor-link"
+            href="#combo_string"
+            title="Permalink to KeyCombo.combo_string">#</a>
+        </h4>
+        <div class="doc">
+<p>A <a class="crossref" href="../dart_core/String.html">String</a> of seperated key names that make up the combo</p>
+<pre class="source">
+final String
+   combo_string
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="count">
+<button class="show-code">Code</button>
+final int         <strong>count</strong> <a class="anchor-link"
+            href="#count"
+            title="Permalink to KeyCombo.count">#</a>
+        </h4>
+        <div class="doc">
+<p>The number of times the combo has been called (only if <a class="crossref" href="../keypress/KeyCombo.html#is_counting">is_counting</a> == <code>true</code>)</p>
+<pre class="source">
+int get
+count =&gt; _count;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="hashCode">
+<button class="show-code">Code</button>
+final int         <strong>hashCode</strong> <a class="anchor-link"
+            href="#hashCode"
+            title="Permalink to KeyCombo.hashCode">#</a>
+        </h4>
+        <div class="doc">
+<div class="inherited">
+<p>Get a hash code for this object.</p>
+<p>All objects have hash codes. Hash codes are guaranteed to be the
+same for objects that are equal when compared using the equality
+operator <code>==</code>. Other than that there are no guarantees about
+the hash codes. They will not be consistent between runs and
+there are no distribution guarantees.</p>
+<p>If a subclass overrides <a class="crossref" href="../keypress/KeyCombo.html#hashCode">hashCode</a> it should override the
+equality operator as well to maintain consistency.</p>
+<div class="docs-inherited-from">docs inherited from Object </div></div>
+<pre class="source">
+int get
+hashCode {
+   String code_string = _keys.join('')
+                              .codeUnits
+                              .fold('', (result, int code) =&gt; '$result$code');
+
+   if (is_ordered) {
+       code_string = '1$code_string';
+   }
+
+   return int.parse(code_string);
+}
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="is_counting">
+<button class="show-code">Code</button>
+bool         <strong>is_counting</strong> <a class="anchor-link"
+            href="#is_counting"
+            title="Permalink to KeyCombo.is_counting">#</a>
+        </h4>
+        <div class="doc">
+<p>Whether to log the number of times the combo has been pressed</p>
+<pre class="source">
+bool
+   is_counting = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="is_exclusive">
+<button class="show-code">Code</button>
+bool         <strong>is_exclusive</strong> <a class="anchor-link"
+            href="#is_exclusive"
+            title="Permalink to KeyCombo.is_exclusive">#</a>
+        </h4>
+        <div class="doc">
+<p>Whether to call the callback functions of other <a class="crossref" href="../keypress/KeyCombo.html">KeyCombo</a>s that share a subset of this combo's keys</p>
+<pre class="source">
+bool
+   is_exclusive = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="is_ordered">
+<button class="show-code">Code</button>
+bool         <strong>is_ordered</strong> <a class="anchor-link"
+            href="#is_ordered"
+            title="Permalink to KeyCombo.is_ordered">#</a>
+        </h4>
+        <div class="doc">
+<p>Whether to require the user to press the keys in the order specified by the <a class="crossref" href="../keypress/KeyCombo.html#combo_string">combo_string</a>.</p>
+<pre class="source">
+bool
+   is_ordered = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="is_sequence">
+<button class="show-code">Code</button>
+bool         <strong>is_sequence</strong> <a class="anchor-link"
+            href="#is_sequence"
+            title="Permalink to KeyCombo.is_sequence">#</a>
+        </h4>
+        <div class="doc">
+<p>Whether to require the user to press all the keys in the <a class="crossref" href="../keypress/KeyCombo.html#combo_string">combo_string</a> exactly, and in order</p>
+<pre class="source">
+bool
+   is_sequence = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="is_solitary">
+<button class="show-code">Code</button>
+bool         <strong>is_solitary</strong> <a class="anchor-link"
+            href="#is_solitary"
+            title="Permalink to KeyCombo.is_solitary">#</a>
+        </h4>
+        <div class="doc">
+<p>This option will check that ONLY the combo's keys are being pressed when set to true.
+When set to the default value of false, a combo can be activated even if extraneous keys are pressed.</p>
+<pre class="source">
+bool
+   is_solitary = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="keys">
+<button class="show-code">Code</button>
+final List&lt;String&gt;         <strong>keys</strong> <a class="anchor-link"
+            href="#keys"
+            title="Permalink to KeyCombo.keys">#</a>
+        </h4>
+        <div class="doc">
+<p>A <a class="crossref" href="../dart_core/List.html">List</a> of the keys in the combo</p>
+<pre class="source">
+List&lt;String&gt; get
+keys =&gt; _keys;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onKeyDown">
+<button class="show-code">Code</button>
+<a href="../keypress/ComboCallback.html">ComboCallback</a>         <strong>onKeyDown</strong> <a class="anchor-link"
+            href="#onKeyDown"
+            title="Permalink to KeyCombo.onKeyDown">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ComboCallback
+   onKeyDown
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onKeyUp">
+<button class="show-code">Code</button>
+<a href="../keypress/ComboCallback.html">ComboCallback</a>         <strong>onKeyUp</strong> <a class="anchor-link"
+            href="#onKeyUp"
+            title="Permalink to KeyCombo.onKeyUp">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ComboCallback
+   onKeyDown,
+   onKeyUp
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="onRelease">
+<button class="show-code">Code</button>
+<a href="../keypress/ComboCallback.html">ComboCallback</a>         <strong>onRelease</strong> <a class="anchor-link"
+            href="#onRelease"
+            title="Permalink to KeyCombo.onRelease">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+ComboCallback
+   onKeyDown,
+   onKeyUp,
+   onRelease
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="prevent_default">
+<button class="show-code">Code</button>
+bool         <strong>prevent_default</strong> <a class="anchor-link"
+            href="#prevent_default"
+            title="Permalink to KeyCombo.prevent_default">#</a>
+        </h4>
+        <div class="doc">
+<p>Whether to prevent the default browser behavior for all keypresses that are part of the combo.</p>
+<pre class="source">
+bool
+   prevent_default = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="prevent_repeat">
+<button class="show-code">Code</button>
+bool         <strong>prevent_repeat</strong> <a class="anchor-link"
+            href="#prevent_repeat"
+            title="Permalink to KeyCombo.prevent_repeat">#</a>
+        </h4>
+        <div class="doc">
+<p>Normally the <a class="crossref" href="../keypress/KeyCombo.html#onKeyDown">onKeyDown</a> callback will be called as fast as your browser fires the keydown event,
+but by setting this option to <code>true</code>, the <a class="crossref" href="../keypress/KeyCombo.html#onKeyDown">onKeyDown</a> callback will only be called the first time.</p>
+<pre class="source">
+bool
+   prevent_repeat = false
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Operators</h3>
+<div class="method"><h4 id="==">
+<button class="show-code">Code</button>
+bool <strong>operator ==</strong>(other) <a class="anchor-link" href="#=="
+              title="Permalink to KeyCombo.operator ==">#</a></h4>
+<div class="doc">
+<p>Can compare <a class="crossref" href="../keypress/KeyCombo.html">KeyCombo</a>s with each other, or with <a class="crossref" href="../dart_core/String.html">String</a>s containing combo keys.
+E.g. <code>(new KeyCombo('shift s', ...)) == 'shift s' == true</code></p>
+<pre class="source">
+bool operator
+== (other) {
+   if (other is KeyCombo) {
+       List same_keys = _keys.where((key) =&gt; (other as KeyCombo).keys.contains(key));
+
+       return same_keys.length == _keys.length &amp;&amp;
+               other.is_ordered == is_ordered;
+   }
+
+   else if (other is String) {
+       return other.toLowerCase() == combo_string ||
+               other.toLowerCase() == _keys.join(combo_delimiter);
+   }
+   else throw "Invalid KeyCombo comparison";
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="toString">
+<button class="show-code">Code</button>
+String <strong>toString</strong>() <a class="anchor-link" href="#toString"
+              title="Permalink to KeyCombo.toString">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Returns a string representation of this object.</p>
+<div class="docs-inherited-from">docs inherited from Object </div></div>
+<pre class="source">
+String
+toString() =&gt; combo_string.toLowerCase();
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2014-01-08 18:30:58.442</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        

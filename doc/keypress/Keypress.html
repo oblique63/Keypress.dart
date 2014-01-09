@@ -1,0 +1,336 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+                <meta charset="utf-8">
+        <title>Keypress class / keypress Library / Dart Documentation</title>
+        <link rel="stylesheet" type="text/css"
+            href="../styles.css">
+        <link href="//fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="../favicon.ico">
+        
+        </head>
+        <body data-library="keypress" data-type="Keypress">
+        <div class="page">
+        <div class="header">
+          <a href="../index.html"><div class="logo"></div></a>
+          <a href="../index.html">Dart Documentation</a>
+         &rsaquo; <a href="../keypress.html">keypress</a> &rsaquo; <a href="../keypress/Keypress.html">Keypress</a>        <div id="search-box">
+          <input type="search" name="q" id="q" autocomplete="off"
+              class="search-input" placeholder="Search API">
+        </div>
+        
+      </div>
+      <div class="drop-down" id="drop-down"></div>
+      
+        <div class="nav">
+        
+<h2><div class="icon-library"></div><a href="../keypress.html">keypress</a></h2><ul class="icon">
+<li><a href="../keypress/ComboCallback.html"><div class="icon-interface"></div>ComboCallback</a></li>
+<li><a href="../keypress/KeyCombo.html"><div class="icon-class"></div>KeyCombo</a></li>
+<li><div class="icon-class"></div><strong>Keypress</strong></li>
+</ul>
+</div>
+<div class="content">
+        <h2><strong>Keypress</strong>
+          class
+        </h2>
+        
+<button id="show-inherited" class="show-inherited">Hide inherited</button>
+<div class="doc">
+<pre class="source">
+class Keypress {
+   bool
+       force_event_defaults = false,
+       suppress_event_defaults = false;
+   int
+       sequence_delay = 800;
+
+   List&lt;KeyCombo&gt;
+       _registered_combos = [],
+       _active_combos = [];
+   List
+       _keys_down = [];
+   List
+       _sequence = [];
+   int
+       _sequence_timer = null;
+   bool
+       _prevent_capture = false;
+   static Keypress
+       _singleton = null;
+
+   factory
+   Keypress() {
+       if (_singleton == null) {
+           _singleton = new Keypress._init();
+       }
+       return _singleton;
+   }
+
+   Keypress._init() {
+       if (window.navigator.userAgent.contains("Opera")) {
+           // TODO: find a better way to do this, so that _keycode_dictionary can remain a 'const'
+           _keycode_map[17] = 'cmd';
+       }
+   }
+
+   List&lt;KeyCombo&gt; get
+   registered_combos =&gt;
+       _registered_combos;
+
+   void
+   reset() =&gt;
+       _registered_combos.clear();
+
+   void
+   combo(String combo_string, ComboCallback callback, {prevent_default: false}) {
+       registerCombo(new KeyCombo(
+           combo_string,
+           onKeyDown: callback,
+           prevent_default: prevent_default
+       ));
+   }
+
+   void
+   countingCombo(String combo_string, ComboCallback count_callback, {prevent_default: false}) {
+       registerCombo(new KeyCombo.counting(
+           combo_string,
+           onKeyDown: count_callback,
+           prevent_default: prevent_default
+       ));
+   }
+
+   void
+   sequenceCombo(String combo_string, ComboCallback callback, {prevent_default: false}) {
+       registerCombo(new KeyCombo.sequence(
+           combo_string,
+           onKeyDown: callback,
+           prevent_default: prevent_default
+       ));
+   }
+
+   void
+   registerCombo(KeyCombo combo) {
+       if (_registered_combos.contains(combo))
+           throw "KeyCombo already registered";
+       else
+           _registered_combos.add(combo);
+   }
+
+   void
+   registerMany(List&lt;KeyCombo&gt; combos) {
+       combos.forEach(registerCombo);
+   }
+
+   void
+   unregisterCombo(combo) {
+       if (_registered_combos.contains(combo)) {
+           _registered_combos.remove(combo);
+       }
+       else throw 'Combo not registered: $combo';
+   }
+}
+</pre>
+</div>
+<div>
+<h3>Constructors</h3>
+<div class="method"><h4 id="">
+<button class="show-code">Code</button>
+factory <strong>Keypress</strong>() <a class="anchor-link" href="#"
+              title="Permalink to Keypress.Keypress">#</a></h4>
+<div class="doc">
+<div class="inherited">
+<p>Creates a new <a class="crossref" href="../dart_core/Object.html">Object</a> instance.</p>
+<p><a class="crossref" href="../dart_core/Object.html">Object</a> instances have no meaningful state, and are only useful
+through their identity. An <a class="crossref" href="../dart_core/Object.html">Object</a> instance is equal to itself
+only.</p>
+<div class="docs-inherited-from">docs inherited from Object </div></div>
+<pre class="source">
+factory
+Keypress() {
+   if (_singleton == null) {
+       _singleton = new Keypress._init();
+   }
+   return _singleton;
+}
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Properties</h3>
+<div class="field"><h4 id="force_event_defaults">
+<button class="show-code">Code</button>
+bool         <strong>force_event_defaults</strong> <a class="anchor-link"
+            href="#force_event_defaults"
+            title="Permalink to Keypress.force_event_defaults">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+bool
+   force_event_defaults = false
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="registered_combos">
+<button class="show-code">Code</button>
+final List&lt;<a href="../keypress/KeyCombo.html">KeyCombo</a>&gt;         <strong>registered_combos</strong> <a class="anchor-link"
+            href="#registered_combos"
+            title="Permalink to Keypress.registered_combos">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+List&lt;KeyCombo&gt; get
+registered_combos =&gt;
+   _registered_combos;
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="sequence_delay">
+<button class="show-code">Code</button>
+int         <strong>sequence_delay</strong> <a class="anchor-link"
+            href="#sequence_delay"
+            title="Permalink to Keypress.sequence_delay">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+int
+   sequence_delay = 800
+</pre>
+</div>
+</div>
+<div class="field"><h4 id="suppress_event_defaults">
+<button class="show-code">Code</button>
+bool         <strong>suppress_event_defaults</strong> <a class="anchor-link"
+            href="#suppress_event_defaults"
+            title="Permalink to Keypress.suppress_event_defaults">#</a>
+        </h4>
+        <div class="doc">
+<pre class="source">
+bool
+   force_event_defaults = false,
+   suppress_event_defaults = false
+</pre>
+</div>
+</div>
+</div>
+<div>
+<h3>Methods</h3>
+<div class="method"><h4 id="combo">
+<button class="show-code">Code</button>
+void <strong>combo</strong>(String combo_string, <a href="../keypress/ComboCallback.html">ComboCallback</a> callback, {prevent_default: false}) <a class="anchor-link" href="#combo"
+              title="Permalink to Keypress.combo">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+combo(String combo_string, ComboCallback callback, {prevent_default: false}) {
+   registerCombo(new KeyCombo(
+       combo_string,
+       onKeyDown: callback,
+       prevent_default: prevent_default
+   ));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="countingCombo">
+<button class="show-code">Code</button>
+void <strong>countingCombo</strong>(String combo_string, <a href="../keypress/ComboCallback.html">ComboCallback</a> count_callback, {prevent_default: false}) <a class="anchor-link" href="#countingCombo"
+              title="Permalink to Keypress.countingCombo">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+countingCombo(String combo_string, ComboCallback count_callback, {prevent_default: false}) {
+   registerCombo(new KeyCombo.counting(
+       combo_string,
+       onKeyDown: count_callback,
+       prevent_default: prevent_default
+   ));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="registerCombo">
+<button class="show-code">Code</button>
+void <strong>registerCombo</strong>(<a href="../keypress/KeyCombo.html">KeyCombo</a> combo) <a class="anchor-link" href="#registerCombo"
+              title="Permalink to Keypress.registerCombo">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+registerCombo(KeyCombo combo) {
+   if (_registered_combos.contains(combo))
+       throw "KeyCombo already registered";
+   else
+       _registered_combos.add(combo);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="registerMany">
+<button class="show-code">Code</button>
+void <strong>registerMany</strong>(List&lt;<a href="../keypress/KeyCombo.html">KeyCombo</a>&gt; combos) <a class="anchor-link" href="#registerMany"
+              title="Permalink to Keypress.registerMany">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+registerMany(List&lt;KeyCombo&gt; combos) {
+   combos.forEach(registerCombo);
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="reset">
+<button class="show-code">Code</button>
+void <strong>reset</strong>() <a class="anchor-link" href="#reset"
+              title="Permalink to Keypress.reset">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+reset() =&gt;
+   _registered_combos.clear();
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="sequenceCombo">
+<button class="show-code">Code</button>
+void <strong>sequenceCombo</strong>(String combo_string, <a href="../keypress/ComboCallback.html">ComboCallback</a> callback, {prevent_default: false}) <a class="anchor-link" href="#sequenceCombo"
+              title="Permalink to Keypress.sequenceCombo">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+sequenceCombo(String combo_string, ComboCallback callback, {prevent_default: false}) {
+   registerCombo(new KeyCombo.sequence(
+       combo_string,
+       onKeyDown: callback,
+       prevent_default: prevent_default
+   ));
+}
+</pre>
+</div>
+</div>
+<div class="method"><h4 id="unregisterCombo">
+<button class="show-code">Code</button>
+void <strong>unregisterCombo</strong>(combo) <a class="anchor-link" href="#unregisterCombo"
+              title="Permalink to Keypress.unregisterCombo">#</a></h4>
+<div class="doc">
+<pre class="source">
+void
+unregisterCombo(combo) {
+   if (_registered_combos.contains(combo)) {
+       _registered_combos.remove(combo);
+   }
+   else throw 'Combo not registered: $combo';
+}
+</pre>
+</div>
+</div>
+</div>
+        </div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">
+          <div>This page was generated at 2014-01-08 18:30:58.475</div>
+        </div>
+        <script async src="../client-static.js"></script>
+        </body></html>
+        
