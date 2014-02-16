@@ -1,6 +1,6 @@
 part of keypress;
 
-const Set<String>
+const List<String>
 _modifier_keys = const ['meta', 'alt', 'option', 'ctrl', 'shift', 'cmd'];
 
 const Map<String, String>
@@ -18,6 +18,7 @@ _alternate_key_names = const {
     'command': 'cmd',
     'break': 'pause',
     'del': 'delete',
+    'return': 'enter',
     'windows': 'cmd',
     'win': 'cmd',
     'prt': 'print',
@@ -211,5 +212,5 @@ _keycode_map =  {
 };
 
 final Set<String>
-_valid_keys = new Set.from(_keycode_map.values)
-                     ..addAll(_shifted_keys.values);
+_valid_keys = _keycode_map.values.toSet()
+                                  ..addAll(_shifted_keys.values);

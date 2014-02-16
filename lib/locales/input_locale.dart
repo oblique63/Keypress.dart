@@ -13,8 +13,8 @@ class InputLocale {
         VALID_KEYS;
 
     InputLocale(this.ID, {this.KEYCODE_MAP, this.SHIFTED_KEYS}) {
-        VALID_KEYS = new Set.from(KEYCODE_MAP.values)
-                             ..addAll(SHIFTED_KEYS.values);
+        VALID_KEYS = KEYCODE_MAP.values.toSet()
+                                        ..addAll(SHIFTED_KEYS.values);
     }
 }
 

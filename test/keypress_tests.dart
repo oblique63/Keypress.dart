@@ -38,7 +38,5 @@ testKeypress() {
                 isEmpty
             );
         });
-
-        //test('bar length', expect(null, hasLength(6)));
     });
 }
