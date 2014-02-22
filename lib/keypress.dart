@@ -178,15 +178,43 @@ class Keypress {
     KeyCombo
     _getSequence(String key) {
         List sequence_combos = _registered_combos.where((combo) => combo.is_sequence);
+        bool match = false;
 
         for (KeyCombo combo in sequence_combos) {
             for (int j = 1; j < _sequence_input.length; j++) {
                 List sequence = _sequence_input.where(
                     (key) => combo.keys.contains("shift") || key != "shift" );
 
-                // TODO Finish implementing
+                sequence = sequence.reversed.take(j);
+
+                if (combo.keys.length == sequence.length) {
+                    for (int i = 0; i < sequence.length; i++) {
+                        var seq_key = sequence[i];
+
+                        if ((seq_key == "shift" || key == "shift")
+                        &&  !combo.keys.contains("shift") ) {
+                            continue;
+                        }
+
+                        if (combo.keys[i] == seq_key) {
+                            match = true;
+                        }
+                        else {
+                          match = false;
+                          break;
+                        }
+
+                    }
+                }
             }
+
+            if (match) {
+              return combo;
+            }
+
         }
+
+        return null;
     }
 
     List<KeyCombo>
